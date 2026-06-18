@@ -1,24 +1,24 @@
 import { Search, X } from 'lucide-react'
 
-export default function SearchBar({ value, onChange, autoFocus = false, placeholder = 'Search live channels' }) {
+export default function SearchBar({ value, onChange, autoFocus = false, placeholder = 'Search channels, categories…' }) {
   return (
     <div className="relative w-full">
-      <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-white/45 tv:h-7 tv:w-7" />
+      <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35 tv:h-6 tv:w-6" />
       <input
         value={value}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={(e) => onChange(e.target.value)}
         autoFocus={autoFocus}
         placeholder={placeholder}
-        className="h-14 w-full rounded-card border border-white/10 bg-white/[0.08] pl-12 pr-12 text-base font-semibold text-white outline-none backdrop-blur-2xl transition placeholder:text-white/35 focus:border-cyan-300/60 focus:ring-4 focus:ring-cyan-300/25 tv:h-20 tv:pl-16 tv:text-2xl"
+        className="h-12 w-full rounded-2xl border border-white/[0.08] bg-white/[0.06] pl-11 pr-10 text-sm font-semibold text-white outline-none backdrop-blur-xl transition placeholder:text-white/30 focus:border-violet-400/50 focus:bg-white/[0.09] focus:ring-2 focus:ring-violet-400/20 tv:h-16 tv:pl-14 tv:text-xl"
       />
       {value && (
         <button
           type="button"
           aria-label="Clear search"
           onClick={() => onChange('')}
-          className="absolute right-3 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full text-white/60 transition hover:bg-white/10 hover:text-white focus:outline-none focus:ring-4 focus:ring-cyan-300/50 tv:h-12 tv:w-12"
+          className="absolute right-3 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full text-white/50 transition hover:bg-white/[0.10] hover:text-white focus:outline-none tv:h-10 tv:w-10"
         >
-          <X className="h-5 w-5 tv:h-7 tv:w-7" />
+          <X className="h-4 w-4 tv:h-5 tv:w-5" />
         </button>
       )}
     </div>

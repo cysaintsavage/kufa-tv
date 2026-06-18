@@ -1,18 +1,24 @@
 import { useEffect, useMemo } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Home } from 'lucide-react'
-import channelData from '../lib/channelData'
+import { useNavigate, useParams } from 'react-router-dom'
+import allChannels, { channelIndex } from '../lib/allChannels'
 import VideoPlayer from '../components/VideoPlayer'
 import { useTvStore } from '../store/tvStore'
 import Seo from '../components/Seo'
+
+// Total channel count — stable, computed once
+const TOTAL = allChannels.length
 
 export default function Player() {
   const { id } = useParams()
   const navigate = useNavigate()
   const setCurrentChannel = useTvStore((state) => state.setCurrentChannel)
 
-  const index = useMemo(() => channelData.findIndex((channel) => channel.id === id), [id])
-  const channel = index >= 0 ? channelData[index] : null
+  // O(1) Map lookup instead of O(n) findIndex + array access
+  const channel = channelIndex.get(id) ?? null
+  const index = useMemo(
+    () => (channel ? allChannels.indexOf(channel) : -1),
+    [channel],
+  )
 
   useEffect(() => {
     if (channel) setCurrentChannel(channel)
@@ -36,15 +42,8 @@ export default function Player() {
     )
   }
 
-  const goNext = () => {
-    const next = channelData[(index + 1) % channelData.length]
-    navigate(`/live/${next.id}`)
-  }
-
-  const goPrevious = () => {
-    const previous = channelData[(index - 1 + channelData.length) % channelData.length]
-    navigate(`/live/${previous.id}`)
-  }
+  const goNext = () => navigate(`/live/${allChannels[(index + 1) % TOTAL].id}`)
+  const goPrevious = () => navigate(`/live/${allChannels[(index - 1 + TOTAL) % TOTAL].id}`)
 
   return (
     <div className="relative min-h-screen bg-black">
@@ -54,15 +53,7 @@ export default function Player() {
         image={channel.logo || '/favicon.svg'}
         type="video.other"
       />
-      <Link
-        to="/"
-        aria-label="Back home"
-        className="absolute left-4 top-4 z-30 inline-flex h-12 items-center gap-2 rounded-full border border-white/10 bg-black/45 px-4 font-bold text-white backdrop-blur-2xl transition hover:bg-white/15 focus:outline-none focus:ring-4 focus:ring-cyan-300/70 tv:left-8 tv:top-8 tv:h-20 tv:px-8 tv:text-3xl"
-      >
-        <ArrowLeft className="h-5 w-5 tv:h-9 tv:w-9" />
-        <span className="hidden sm:inline">Back</span>
-      </Link>
-      <VideoPlayer channel={channel} onNext={goNext} onPrevious={goPrevious} />
+      <VideoPlayer channel={channel} onNext={goNext} onPrevious={goPrevious} onBack={() => navigate(-1)} />
     </div>
   )
 }

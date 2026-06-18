@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Clock3, Heart, Play, RadioTower, Sparkles } from 'lucide-react'
-import channelData from '../lib/channelData'
+import { Clock3, Heart, Play, RadioTower, Sparkles, Tv2 } from 'lucide-react'
+import allChannels, { byIds, allCategories } from '../lib/allChannels'
 import { useTvStore } from '../store/tvStore'
 import ChannelCard from '../components/ChannelCard'
 import ChannelGrid from '../components/ChannelGrid'
@@ -10,18 +10,33 @@ import SearchBar from '../components/SearchBar'
 import CategoryFilter from '../components/CategoryFilter'
 import Seo from '../components/Seo'
 
-const byIds = (ids) => ids.map((id) => channelData.find((channel) => channel.id === id)).filter(Boolean)
+// Stable module-level pools — no re-creation on each render
+const safeChannels = allChannels.filter((ch) => !ch.isAdult)
 
-function SectionHeader({ icon: Icon, title, action }) {
+function SectionHeader({ icon: Icon, title, action, accent = 'violet' }) {
+  const colors = {
+    violet: 'text-violet-300 border-violet-400/20 bg-violet-500/10',
+    rose: 'text-rose-300 border-rose-400/20 bg-rose-500/10',
+    cyan: 'text-cyan-300 border-cyan-400/20 bg-cyan-500/10',
+  }
   return (
-    <div className="mb-4 flex items-center justify-between gap-4">
-      <div className="flex items-center gap-3">
-        <span className="grid h-10 w-10 place-items-center rounded-2xl border border-white/10 bg-white/[0.07] text-cyan-200 tv:h-14 tv:w-14">
-          <Icon className="h-5 w-5 tv:h-7 tv:w-7" />
+    <div className="mb-3 flex items-center justify-between gap-4">
+      <div className="flex items-center gap-2.5">
+        <span className={`grid h-8 w-8 place-items-center rounded-xl border ${colors[accent]} tv:h-12 tv:w-12`}>
+          <Icon className="h-4 w-4 tv:h-6 tv:w-6" />
         </span>
-        <h2 className="text-xl font-black tv:text-4xl">{title}</h2>
+        <h2 className="text-base font-black tracking-tight tv:text-3xl">{title}</h2>
       </div>
       {action}
+    </div>
+  )
+}
+
+function StatPill({ label, value, gradient }) {
+  return (
+    <div className={`flex flex-col items-center justify-center rounded-2xl border border-white/[0.07] px-4 py-3 text-center ${gradient}`}>
+      <span className="text-2xl font-black leading-none">{value}</span>
+      <span className="mt-0.5 text-[0.65rem] font-semibold uppercase tracking-widest text-white/50">{label}</span>
     </div>
   )
 }
@@ -31,95 +46,153 @@ export default function Home() {
   const favoriteIds = useTvStore((state) => state.favoriteIds)
   const recentlyWatchedIds = useTvStore((state) => state.recentlyWatchedIds)
   const currentChannelId = useTvStore((state) => state.currentChannelId)
+  const adultEnabled = useTvStore((state) => state.settings.adultContentEnabled)
 
-  const featured = channelData.find((channel) => channel.id === currentChannelId) || channelData[0]
+  // visibleChannels: switch between pre-built pools, no runtime filter needed
+  const visibleChannels = adultEnabled ? allChannels : safeChannels
+
+  // O(1) per ID via channelIndex Map
+  const featured = useMemo(
+    () => allChannels.find((ch) => ch.id === currentChannelId) || allChannels[0],
+    [currentChannelId],
+  )
   const favorites = useMemo(() => byIds(favoriteIds).slice(0, 8), [favoriteIds])
   const recentlyWatched = useMemo(() => byIds(recentlyWatchedIds).slice(0, 8), [recentlyWatchedIds])
+
+  // Use pre-built _search string — no template-literal concat per channel per keystroke
   const filteredChannels = useMemo(() => {
     const term = query.trim().toLowerCase()
-    if (!term) return channelData
-    return channelData.filter((channel) =>
-      `${channel.name} ${channel.category}`.toLowerCase().includes(term),
-    )
-  }, [query])
+    if (!term) return visibleChannels
+    return visibleChannels.filter((ch) => ch._search.includes(term))
+  }, [query, visibleChannels])
+
+  // allCategories is pre-sorted at module load — no recomputation needed
+  const categories = allCategories
+
+  const stats = [
+    { label: 'Total', value: allChannels.length, gradient: 'bg-violet-500/10' },
+    { label: 'Live Now', value: visibleChannels.length, gradient: 'bg-fuchsia-500/10' },
+    { label: 'Categories', value: categories.length, gradient: 'bg-pink-500/10' },
+    { label: 'Favorites', value: favoriteIds.length, gradient: 'bg-rose-500/10' },
+  ]
 
   return (
     <>
       <Seo
         title="Live TV Dashboard"
-        description={`Watch ${channelData.length} live IPTV channels with favorites, recently watched, search, and category browsing.`}
+        description={`Watch ${allChannels.length} live IPTV channels — sports, news, movies, music, Bangladesh channels and more.`}
       />
-      <div className="space-y-8 tv:space-y-12">
-      <motion.section
-        initial={{ opacity: 0, scale: 0.985 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.32 }}
-        className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/[0.07] p-4 shadow-2xl shadow-black/30 backdrop-blur-2xl sm:p-6 lg:p-8 tv:p-10"
-      >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_20%,rgba(34,211,238,0.20),transparent_30%),linear-gradient(135deg,rgba(244,63,94,0.14),transparent_45%)]" />
-        <div className="relative grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-stretch">
-          <div className="flex min-h-[24rem] flex-col justify-between gap-6 rounded-[1.4rem] bg-black/25 p-5 sm:p-6 tv:min-h-[34rem] tv:p-10">
-            <div>
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-200/30 bg-cyan-300/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-cyan-100 tv:text-base">
-                <Sparkles className="h-4 w-4 tv:h-6 tv:w-6" />
-                Featured Live
+      <div className="space-y-6 tv:space-y-10">
+
+        {/* ── Hero ── */}
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="relative overflow-hidden rounded-3xl border border-white/[0.08] bg-gradient-to-br from-[#0d0a1f] via-[#100c20] to-[#0a0d1c] p-1 shadow-2xl shadow-black/40"
+        >
+          {/* Ambient glows */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-3xl">
+            <div className="absolute -top-20 left-1/4 h-64 w-64 rounded-full bg-violet-600/20 blur-3xl" />
+            <div className="absolute -bottom-10 right-10 h-48 w-48 rounded-full bg-fuchsia-600/20 blur-3xl" />
+            <div className="absolute top-10 right-1/3 h-32 w-32 rounded-full bg-pink-500/15 blur-2xl" />
+          </div>
+
+          <div className="relative grid gap-4 rounded-[1.4rem] p-5 sm:p-6 lg:grid-cols-[1fr_auto] lg:items-center lg:p-8">
+            {/* Left content */}
+            <div className="flex flex-col gap-4">
+              <div className="inline-flex items-center gap-2 self-start rounded-full border border-violet-400/25 bg-violet-500/10 px-3 py-1 text-[0.65rem] font-black uppercase tracking-widest text-violet-300">
+                <Sparkles className="h-3 w-3" />
+                Live Streaming
               </div>
-              <h1 className="max-w-3xl text-4xl font-black leading-tight sm:text-6xl tv:text-8xl">
-                Watch live TV without the clutter.
-              </h1>
-              <p className="mt-4 max-w-2xl text-base font-medium text-white/62 sm:text-lg tv:text-3xl">
-                Browse sports, news, movies, music, cartoons, and Bangladesh channels in a remote-friendly streaming dashboard.
-              </p>
+              <div>
+                <h1 className="text-3xl font-black leading-tight tracking-tight sm:text-5xl tv:text-7xl">
+                  Watch Live TV{' '}
+                  <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">
+                    free.
+                  </span>
+                </h1>
+                <p className="mt-2 max-w-xl text-sm font-medium text-white/50 sm:text-base tv:text-2xl">
+                  Sports, news, movies, music, cartoons and 400+ Bangladesh channels — all in one place.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <Link
+                  to={`/live/${featured.id}`}
+                  data-focusable="true"
+                  className="inline-flex h-11 items-center gap-2.5 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 px-5 text-sm font-black text-white shadow-xl shadow-violet-600/30 transition hover:from-violet-500 hover:to-fuchsia-500 hover:shadow-violet-500/40 focus:outline-none focus:ring-2 focus:ring-violet-400/70 tv:h-16 tv:px-8 tv:text-2xl"
+                >
+                  <Play className="h-4 w-4 fill-current tv:h-6 tv:w-6" />
+                  Watch Now
+                </Link>
+                <Link
+                  to="/search"
+                  className="inline-flex h-11 items-center gap-2 rounded-2xl border border-white/[0.10] bg-white/[0.06] px-5 text-sm font-bold text-white/80 transition hover:bg-white/[0.11] focus:outline-none tv:h-16 tv:px-8 tv:text-2xl"
+                >
+                  <Tv2 className="h-4 w-4" />
+                  Browse All
+                </Link>
+              </div>
+
+              {/* Stats row */}
+              <div className="grid grid-cols-4 gap-2 sm:gap-3">
+                {stats.map((s) => (
+                  <StatPill key={s.label} {...s} />
+                ))}
+              </div>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
-              <Link
-                to={`/live/${featured.id}`}
-                data-focusable="true"
-                className="inline-flex min-h-14 items-center gap-3 rounded-full bg-white px-6 text-base font-black text-slate-950 shadow-xl shadow-white/10 transition hover:bg-cyan-200 focus:outline-none focus:ring-4 focus:ring-cyan-300/70 tv:min-h-20 tv:px-10 tv:text-3xl"
-              >
-                <Play className="h-5 w-5 fill-current tv:h-9 tv:w-9" />
-                Watch Now
-              </Link>
-              <span className="rounded-full border border-white/10 bg-white/[0.07] px-4 py-3 text-sm font-bold text-white/70 tv:text-2xl">
-                {channelData.length} live channels
-              </span>
+
+            {/* Featured card */}
+            <div className="hidden lg:block lg:w-52 xl:w-60">
+              <ChannelCard channel={featured} featured />
             </div>
           </div>
-          <ChannelCard channel={featured} featured />
-        </div>
-      </motion.section>
+        </motion.section>
 
-      <section className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
-        <SearchBar value={query} onChange={setQuery} />
-        <CategoryFilter compact />
-      </section>
-
-      {recentlyWatched.length > 0 && (
-        <section>
-          <SectionHeader icon={Clock3} title="Recently Watched" />
-          <ChannelGrid channels={recentlyWatched} />
+        {/* ── Search + Categories ── */}
+        <section className="space-y-3">
+          <SearchBar value={query} onChange={setQuery} />
+          <CategoryFilter compact channels={visibleChannels} />
         </section>
-      )}
 
-      {favorites.length > 0 && (
+        {/* ── Recently Watched ── */}
+        {recentlyWatched.length > 0 && (
+          <section>
+            <SectionHeader icon={Clock3} title="Recently Watched" accent="cyan" />
+            <ChannelGrid channels={recentlyWatched} />
+          </section>
+        )}
+
+        {/* ── Favorites ── */}
+        {favorites.length > 0 && (
+          <section>
+            <SectionHeader
+              icon={Heart}
+              title="Favorites"
+              accent="rose"
+              action={
+                <Link to="/favorites" className="text-xs font-bold text-violet-300 hover:text-white transition tv:text-lg">
+                  View all
+                </Link>
+              }
+            />
+            <ChannelGrid channels={favorites} />
+          </section>
+        )}
+
+        {/* ── All Channels ── */}
         <section>
           <SectionHeader
-            icon={Heart}
-            title="Favorite Channels"
-            action={<Link to="/favorites" className="text-sm font-bold text-cyan-200 hover:text-white tv:text-xl">View all</Link>}
+            icon={RadioTower}
+            title={query ? `Results for "${query}"` : 'All Live Channels'}
+            accent="violet"
           />
-          <ChannelGrid channels={favorites} />
+          <ChannelGrid
+            channels={filteredChannels}
+            emptyTitle="No matching channels"
+            emptyText="Try a different search or category."
+          />
         </section>
-      )}
-
-      <section>
-        <SectionHeader icon={RadioTower} title={query ? 'Search Results' : 'All Live Channels'} />
-        <ChannelGrid
-          channels={filteredChannels}
-          emptyTitle="No matching channels"
-          emptyText="Search by channel name or category."
-        />
-      </section>
       </div>
     </>
   )

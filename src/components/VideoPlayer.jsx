@@ -15,6 +15,7 @@ import {
   Volume2,
   VolumeX,
   Wifi,
+  ArrowLeft,
 } from 'lucide-react'
 import FavoriteButton from './FavoriteButton'
 import { useTvStore } from '../store/tvStore'
@@ -81,7 +82,7 @@ const HLS_CONFIG = {
   startPosition: -1,
 }
 
-export default function VideoPlayer({ channel, onNext, onPrevious }) {
+export default function VideoPlayer({ channel, onNext, onPrevious, onBack }) {
   const videoRef = useRef(null)
   const shellRef = useRef(null)
   const hlsRef = useRef(null)
@@ -495,6 +496,24 @@ export default function VideoPlayer({ channel, onNext, onPrevious }) {
             </button>
           </div>
         </div>
+      )}
+
+      {onBack && (
+        <motion.div
+          animate={{ opacity: controlsVisible ? 1 : 0, y: controlsVisible ? 0 : -18 }}
+          transition={{ duration: 0.2 }}
+          className="absolute left-4 top-4 z-30 tv:left-8 tv:top-8"
+        >
+          <button
+            type="button"
+            onClick={onBack}
+            aria-label="Go back"
+            className="inline-flex h-12 items-center gap-2 rounded-full border border-white/10 bg-black/45 px-4 font-bold text-white backdrop-blur-2xl transition hover:bg-white/15 focus:outline-none focus:ring-4 focus:ring-cyan-300/70 tv:h-20 tv:px-8 tv:text-3xl"
+          >
+            <ArrowLeft className="h-5 w-5 tv:h-9 tv:w-9" />
+            <span className="hidden sm:inline">Back</span>
+          </button>
+        </motion.div>
       )}
 
       <motion.div

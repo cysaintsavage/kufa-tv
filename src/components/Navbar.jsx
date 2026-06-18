@@ -1,61 +1,71 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Bell, MonitorPlay, Search, Settings, UserRound } from 'lucide-react'
-import channelData from '../lib/channelData'
+import { MonitorPlay, Search, Settings, Bell } from 'lucide-react'
+import allChannels from '../lib/allChannels'
+
+const totalChannels = allChannels.length
 
 export default function Navbar() {
   const location = useLocation()
 
+  const breadcrumb =
+    location.pathname === '/'
+      ? 'Home'
+      : decodeURIComponent(location.pathname.split('/').filter(Boolean).join(' › '))
+
   return (
-    <header className="fixed left-0 right-0 top-0 z-40 border-b border-white/10 bg-[#06070d]/72 backdrop-blur-2xl lg:left-24 xl:left-28">
-      <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:h-20 lg:px-8 tv:h-24">
-        <Link to="/" data-focusable="true" className="flex items-center gap-3 rounded-full focus:outline-none focus:ring-4 focus:ring-cyan-300/60">
-          <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300 to-rose-500 shadow-lg shadow-cyan-500/20 tv:h-16 tv:w-16">
-            <MonitorPlay className="h-6 w-6 text-white tv:h-9 tv:w-9" />
+    <header className="fixed left-0 right-0 top-0 z-40 lg:left-24 xl:left-28">
+      <div className="mx-auto flex h-14 items-center justify-between gap-3 border-b border-white/[0.08] bg-[#06070d]/80 px-4 backdrop-blur-2xl sm:px-6 lg:h-16 lg:px-8">
+        {/* Logo */}
+        <Link
+          to="/"
+          data-focusable="true"
+          className="flex shrink-0 items-center gap-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-400/60"
+        >
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 shadow-lg shadow-violet-500/30 tv:h-12 tv:w-12">
+            <MonitorPlay className="h-5 w-5 text-white tv:h-7 tv:w-7" />
           </span>
-          <span>
-            <span className="block text-lg font-black leading-none tracking-wide tv:text-3xl">Kufa TV</span>
-            <span className="hidden text-xs font-semibold uppercase tracking-[0.24em] text-white/45 sm:block tv:text-sm">{channelData.length} live channels</span>
+          <span className="hidden sm:block">
+            <span className="block bg-gradient-to-r from-violet-300 via-fuchsia-200 to-pink-300 bg-clip-text text-[15px] font-black leading-none tracking-wide text-transparent tv:text-2xl">
+              Kufa TV
+            </span>
+            <span className="block text-[10px] font-semibold uppercase tracking-widest text-white/40 tv:text-xs">
+              {totalChannels} channels live
+            </span>
           </span>
         </Link>
 
-        <div className="hidden min-w-0 flex-1 justify-center md:flex">
-          <div className="truncate rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-sm font-semibold text-white/55 tv:text-lg">
-            {location.pathname === '/' ? 'Home' : decodeURIComponent(location.pathname.split('/').filter(Boolean).join(' / '))}
+        {/* Breadcrumb pill */}
+        <div className="hidden min-w-0 flex-1 items-center justify-center md:flex">
+          <div className="max-w-xs truncate rounded-full border border-white/[0.08] bg-white/[0.05] px-4 py-1.5 text-xs font-semibold text-white/45 tv:text-sm">
+            {breadcrumb}
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Actions */}
+        <div className="flex items-center gap-1.5">
           <Link
             to="/search"
             data-focusable="true"
             aria-label="Search"
-            className="grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-white/[0.07] text-white/75 transition hover:bg-white/15 focus:outline-none focus:ring-4 focus:ring-cyan-300/60 tv:h-16 tv:w-16"
+            className="grid h-9 w-9 place-items-center rounded-xl border border-white/[0.08] bg-white/[0.06] text-white/65 transition hover:bg-white/[0.12] hover:text-white focus:outline-none focus:ring-2 focus:ring-violet-400/60 tv:h-12 tv:w-12"
           >
-            <Search className="h-5 w-5 tv:h-8 tv:w-8" />
+            <Search className="h-4 w-4 tv:h-6 tv:w-6" />
           </Link>
           <button
             type="button"
             data-focusable="true"
             aria-label="Notifications"
-            className="hidden h-11 w-11 place-items-center rounded-full border border-white/10 bg-white/[0.07] text-white/75 transition hover:bg-white/15 focus:outline-none focus:ring-4 focus:ring-cyan-300/60 sm:grid tv:h-16 tv:w-16"
+            className="hidden h-9 w-9 place-items-center rounded-xl border border-white/[0.08] bg-white/[0.06] text-white/65 transition hover:bg-white/[0.12] hover:text-white focus:outline-none focus:ring-2 focus:ring-violet-400/60 sm:grid tv:h-12 tv:w-12"
           >
-            <Bell className="h-5 w-5 tv:h-8 tv:w-8" />
+            <Bell className="h-4 w-4 tv:h-6 tv:w-6" />
           </button>
-          <Link
-            to="/developer"
-            data-focusable="true"
-            aria-label="Developer profile"
-            className="hidden h-11 w-11 place-items-center rounded-full border border-white/10 bg-white/[0.07] text-white/75 transition hover:bg-white/15 focus:outline-none focus:ring-4 focus:ring-cyan-300/60 sm:grid tv:h-16 tv:w-16"
-          >
-            <UserRound className="h-5 w-5 tv:h-8 tv:w-8" />
-          </Link>
           <Link
             to="/settings"
             data-focusable="true"
             aria-label="Settings"
-            className="grid h-11 w-11 place-items-center rounded-full border border-white/10 bg-white/[0.07] text-white/75 transition hover:bg-white/15 focus:outline-none focus:ring-4 focus:ring-cyan-300/60 tv:h-16 tv:w-16"
+            className="grid h-9 w-9 place-items-center rounded-xl border border-white/[0.08] bg-white/[0.06] text-white/65 transition hover:bg-white/[0.12] hover:text-white focus:outline-none focus:ring-2 focus:ring-violet-400/60 tv:h-12 tv:w-12"
           >
-            <Settings className="h-5 w-5 tv:h-8 tv:w-8" />
+            <Settings className="h-4 w-4 tv:h-6 tv:w-6" />
           </Link>
         </div>
       </div>

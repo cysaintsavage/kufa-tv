@@ -1,13 +1,15 @@
+import { useMemo } from 'react'
 import { Heart } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import channelData from '../lib/channelData'
+import { byIds } from '../lib/allChannels'
 import ChannelGrid from '../components/ChannelGrid'
 import { useTvStore } from '../store/tvStore'
 import Seo from '../components/Seo'
 
 export default function Favorites() {
   const favoriteIds = useTvStore((state) => state.favoriteIds)
-  const channels = favoriteIds.map((id) => channelData.find((channel) => channel.id === id)).filter(Boolean)
+  // byIds uses channelIndex Map — O(1) per ID, no .find() scan
+  const channels = useMemo(() => byIds(favoriteIds), [favoriteIds])
 
   return (
     <div className="space-y-6 tv:space-y-10">
@@ -17,14 +19,14 @@ export default function Favorites() {
       />
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-rose-300/25 bg-rose-500/10 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-rose-100 tv:text-base">
-            <Heart className="h-4 w-4 tv:h-6 tv:w-6" />
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-rose-400/20 bg-rose-500/10 px-3 py-1 text-[0.65rem] font-black uppercase tracking-widest text-rose-300">
+            <Heart className="h-3 w-3" />
             Saved
           </div>
           <h1 className="text-3xl font-black sm:text-5xl tv:text-7xl">Favorite Channels</h1>
           <p className="mt-2 text-white/55 tv:text-2xl">Your pinned live channels stay here after refresh.</p>
         </div>
-        <Link to="/search" className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/10 bg-white/[0.07] px-5 font-bold text-white/75 transition hover:bg-white/[0.12] focus:outline-none focus:ring-4 focus:ring-cyan-300/60 tv:min-h-20 tv:px-8 tv:text-2xl">
+        <Link to="/search" className="inline-flex h-10 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.06] px-4 text-sm font-bold text-white/70 transition hover:bg-white/[0.10] focus:outline-none focus:ring-2 focus:ring-violet-400/60">
           Find Channels
         </Link>
       </header>

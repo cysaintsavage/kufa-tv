@@ -1,37 +1,51 @@
 import { NavLink } from 'react-router-dom'
-import channelData from '../lib/channelData'
+import { allCategories, channelsByCategory } from '../lib/allChannels'
+import { useTvStore } from '../store/tvStore'
 
-const categories = Array.from(new Set(channelData.map((channel) => channel.category).filter(Boolean)))
+export default function CategoryFilter({ compact = false, channels }) {
+  const adultEnabled = useTvStore((state) => state.settings.adultContentEnabled)
 
-export default function CategoryFilter({ active = 'All', compact = false }) {
+  // If a custom channel list is passed, derive unique categories from it.
+  // Otherwise use the pre-built allCategories list (no runtime computation).
+  const categories = channels
+    ? Array.from(new Set(channels.map((ch) => ch.category).filter(Boolean))).sort()
+    : allCategories
+
+  // Filter out XXX category if adult content is disabled
+  const visibleCategories = adultEnabled
+    ? categories
+    : categories.filter((c) => {
+        const list = channelsByCategory.get(c)
+        return list?.some((ch) => !ch.isAdult)
+      })
+
+  const pillClass = (isActive) =>
+    [
+      'shrink-0 rounded-full border px-3 py-1 text-xs font-bold transition focus:outline-none focus:ring-2 focus:ring-violet-400/60 tv:px-5 tv:py-2.5 tv:text-base',
+      compact ? '' : 'px-4 py-1.5',
+      isActive
+        ? 'border-violet-400/50 bg-violet-500/20 text-violet-200 shadow-md shadow-violet-500/10'
+        : 'border-white/[0.07] bg-white/[0.05] text-white/55 hover:bg-white/[0.10] hover:text-white/90',
+    ].join(' ')
+
   return (
-    <div className="no-scrollbar flex gap-2 overflow-x-auto py-1">
+    <div className="no-scrollbar flex gap-2 overflow-x-auto py-0.5">
       <NavLink
         to="/"
+        end
         data-focusable="true"
-        className={({ isActive }) => [
-          'shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-cyan-300/60 tv:px-7 tv:py-4 tv:text-xl',
-          (isActive && active === 'All') || active === 'All'
-            ? 'border-cyan-200/70 bg-cyan-300 text-slate-950 shadow-lg shadow-cyan-400/20'
-            : 'border-white/10 bg-white/[0.07] text-white/70 hover:bg-white/[0.12]',
-          compact ? 'tv:text-lg' : '',
-        ].join(' ')}
+        className={({ isActive }) => pillClass(isActive)}
       >
         All
       </NavLink>
-      {categories.map((category) => (
+      {visibleCategories.map((cat) => (
         <NavLink
-          key={category}
-          to={`/category/${encodeURIComponent(category)}`}
+          key={cat}
+          to={`/category/${encodeURIComponent(cat)}`}
           data-focusable="true"
-          className={({ isActive }) => [
-            'shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-cyan-300/60 tv:px-7 tv:py-4 tv:text-xl',
-            isActive || active === category
-              ? 'border-cyan-200/70 bg-cyan-300 text-slate-950 shadow-lg shadow-cyan-400/20'
-              : 'border-white/10 bg-white/[0.07] text-white/70 hover:bg-white/[0.12]',
-          ].join(' ')}
+          className={({ isActive }) => pillClass(isActive)}
         >
-          {category}
+          {cat}
         </NavLink>
       ))}
     </div>

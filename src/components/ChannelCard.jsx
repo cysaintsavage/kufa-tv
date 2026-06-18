@@ -1,73 +1,106 @@
 import { memo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Play, Radio } from 'lucide-react'
+import { EyeOff, Play, Radio } from 'lucide-react'
 import FavoriteButton from './FavoriteButton'
+import { useTvStore } from '../store/tvStore'
 
 function ChannelCard({ channel, index = 0, featured = false }) {
   const [imageFailed, setImageFailed] = useState(false)
+  const adultEnabled = useTvStore((state) => state.settings.adultContentEnabled)
+
+  const isBlocked = channel.isAdult && !adultEnabled
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 18 }}
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, delay: Math.min(index * 0.025, 0.22) }}
-      whileHover={{ y: -6, scale: 1.015 }}
+      transition={{ duration: 0.22, delay: Math.min(index * 0.02, 0.18) }}
+      whileHover={isBlocked ? {} : { y: -4, scale: 1.012 }}
       className="group relative"
     >
       <Link
-        to={`/live/${channel.id}`}
-        data-focusable="true"
+        to={isBlocked ? '#' : `/live/${channel.id}`}
+        onClick={isBlocked ? (e) => e.preventDefault() : undefined}
+        data-focusable={!isBlocked ? 'true' : undefined}
+        title={isBlocked ? 'Enable 18+ content in Settings to watch' : channel.name}
         className={[
-          'relative block overflow-hidden rounded-card border border-white/10 bg-white/[0.075] shadow-2xl shadow-black/20 backdrop-blur-2xl transition',
-          'hover:border-cyan-300/50 hover:bg-white/[0.11]',
-          'focus:outline-none focus:ring-4 focus:ring-cyan-300/75 focus:ring-offset-4 focus:ring-offset-[#06070d]',
-          featured ? 'min-h-[22rem] p-5 sm:p-6 tv:min-h-[28rem]' : 'min-h-44 p-4 sm:min-h-52 tv:min-h-64 tv:p-6',
+          'relative block overflow-hidden rounded-2xl border bg-white/[0.06] shadow-xl shadow-black/20 backdrop-blur-xl transition',
+          isBlocked
+            ? 'cursor-not-allowed border-white/[0.06] opacity-70'
+            : 'border-white/[0.08] hover:border-violet-400/40 hover:bg-white/[0.10]',
+          'focus:outline-none focus:ring-2 focus:ring-violet-400/60',
+          featured ? 'min-h-[20rem] p-4 sm:p-5' : 'min-h-40 p-3 sm:min-h-44',
         ].join(' ')}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-cyan-400/10 via-transparent to-rose-500/10 opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100" />
+        {/* Hover glow */}
+        {!isBlocked && (
+          <div className="absolute inset-0 bg-gradient-to-br from-violet-500/10 via-transparent to-fuchsia-500/10 opacity-0 transition-opacity group-hover:opacity-100" />
+        )}
+
         <div className="relative z-10 flex h-full flex-col">
-          <div className="flex items-start justify-between gap-3">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-red-300/30 bg-red-500/18 px-2.5 py-1 text-[0.68rem] font-black uppercase tracking-[0.16em] text-red-100 tv:text-sm">
-              <span className="h-2 w-2 rounded-full bg-red-400 shadow-[0_0_16px_rgba(248,113,113,0.9)]" />
+          {/* Top row */}
+          <div className="flex items-start justify-between gap-2">
+            <span className="inline-flex items-center gap-1 rounded-full border border-red-400/25 bg-red-500/15 px-2 py-0.5 text-[0.6rem] font-black uppercase tracking-widest text-red-300 tv:text-xs">
+              <span className="h-1.5 w-1.5 rounded-full bg-red-400 shadow-[0_0_8px_rgba(248,113,113,1)]" />
               Live
             </span>
-            <FavoriteButton channel={channel} compact={!featured} />
+            {channel.isAdult && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-orange-400/30 bg-orange-500/15 px-2 py-0.5 text-[0.6rem] font-black uppercase tracking-widest text-orange-300">
+                18+
+              </span>
+            )}
+            <FavoriteButton channel={channel} compact />
           </div>
 
-          <div className="flex flex-1 items-center justify-center py-5">
-            <div className={[
-              'grid place-items-center rounded-2xl border border-white/10 bg-black/25 p-4 shadow-inner shadow-white/5',
-              featured ? 'h-32 w-32 sm:h-40 sm:w-40 tv:h-52 tv:w-52' : 'h-20 w-20 sm:h-24 sm:w-24 tv:h-32 tv:w-32',
-            ].join(' ')}
-            >
-              {imageFailed || !channel.logo ? (
-                <Radio className="h-10 w-10 text-white/45 tv:h-14 tv:w-14" />
-              ) : (
-                <img
-                  src={channel.logo}
-                  alt={`${channel.name} logo`}
-                  loading="lazy"
-                  decoding="async"
-                  onError={() => setImageFailed(true)}
-                  className="max-h-full max-w-full object-contain drop-shadow-xl"
-                />
+          {/* Logo */}
+          <div className="flex flex-1 items-center justify-center py-4">
+            {isBlocked ? (
+              <div className={[
+                'grid place-items-center rounded-2xl border border-white/[0.07] bg-black/30',
+                featured ? 'h-28 w-28 sm:h-36 sm:w-36' : 'h-16 w-16 sm:h-20 sm:w-20',
+              ].join(' ')}>
+                <EyeOff className="h-7 w-7 text-white/25" />
+              </div>
+            ) : (
+              <div className={[
+                'grid place-items-center rounded-2xl border border-white/[0.07] bg-black/20 shadow-inner',
+                featured ? 'h-28 w-28 sm:h-36 sm:w-36 tv:h-44 tv:w-44' : 'h-16 w-16 sm:h-20 sm:w-20 tv:h-28 tv:w-28',
+              ].join(' ')}>
+                {imageFailed || !channel.logo ? (
+                  <Radio className="h-8 w-8 text-white/30 tv:h-10 tv:w-10" />
+                ) : (
+                  <img
+                    src={channel.logo}
+                    alt={`${channel.name} logo`}
+                    loading="lazy"
+                    decoding="async"
+                    onError={() => setImageFailed(true)}
+                    className="max-h-full max-w-full object-contain drop-shadow-lg"
+                  />
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Name + category */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between gap-2">
+              <p className={[
+                'truncate font-bold leading-tight',
+                featured ? 'text-xl sm:text-2xl tv:text-3xl' : 'text-sm tv:text-lg',
+              ].join(' ')}>
+                {isBlocked ? '••••••••' : channel.name}
+              </p>
+              {!isBlocked && (
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-violet-500 text-white opacity-0 shadow-lg shadow-violet-500/40 transition group-hover:opacity-100 tv:h-9 tv:w-9">
+                  <Play className="h-3 w-3 fill-current tv:h-4 tv:w-4" />
+                </span>
               )}
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-3">
-              <p className={featured ? 'line-clamp-2 text-2xl font-black tv:text-4xl' : 'line-clamp-2 text-base font-bold tv:text-2xl'}>
-                {channel.name}
-              </p>
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-cyan-300 text-slate-950 opacity-0 shadow-lg shadow-cyan-400/30 transition group-hover:opacity-100 group-focus-within:opacity-100 tv:h-12 tv:w-12">
-                <Play className="h-4 w-4 fill-current tv:h-6 tv:w-6" />
-              </span>
-            </div>
-            <div className="flex items-center justify-between gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/55 tv:text-sm">
-              <span className="truncate">{channel.category}</span>
-              {channel.number && <span className="text-white/35">#{channel.number}</span>}
+            <div className="flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-widest text-white/40 tv:text-xs">
+              <span className="truncate">{isBlocked ? 'Adult Content' : channel.category}</span>
+              {channel.number && !isBlocked && <span className="shrink-0 text-white/25">#{channel.number}</span>}
             </div>
           </div>
         </div>

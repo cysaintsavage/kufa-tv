@@ -4,24 +4,30 @@ import { Heart, Home, Search, Settings, Tv, UserRound } from 'lucide-react'
 const items = [
   { to: '/', label: 'Home', icon: Home },
   { to: '/search', label: 'Search', icon: Search },
-  { to: '/favorites', label: 'Favorites', icon: Heart },
-  { to: '/developer', label: 'Developer', icon: UserRound },
+  { to: '/favorites', label: 'Saved', icon: Heart },
+  { to: '/developer', label: 'Dev', icon: UserRound },
   { to: '/settings', label: 'Settings', icon: Settings },
 ]
 
 export default function Sidebar() {
   return (
-    <aside className="fixed bottom-0 left-0 top-0 z-50 hidden w-24 border-r border-white/10 bg-[#06070d]/78 backdrop-blur-2xl lg:block xl:w-28">
-      <div className="flex h-full flex-col items-center gap-6 py-6">
+    <aside className="fixed bottom-0 left-0 top-0 z-50 hidden w-24 border-r border-white/[0.07] bg-[#07080f]/85 backdrop-blur-2xl lg:block xl:w-28">
+      <div className="flex h-full flex-col items-center gap-5 py-5">
+        {/* Brand icon */}
         <NavLink
           to="/"
           data-focusable="true"
           aria-label="Kufa TV home"
-          className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300 to-rose-500 text-white shadow-xl shadow-cyan-500/20 focus:outline-none focus:ring-4 focus:ring-cyan-300/60 tv:h-20 tv:w-20"
+          className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 text-white shadow-xl shadow-violet-500/30 transition hover:shadow-violet-500/50 focus:outline-none focus:ring-2 focus:ring-violet-400/60 tv:h-16 tv:w-16"
         >
-          <Tv className="h-7 w-7 tv:h-11 tv:w-11" />
+          <Tv className="h-6 w-6 tv:h-9 tv:w-9" />
         </NavLink>
-        <nav className="flex flex-1 flex-col items-center justify-center gap-4">
+
+        {/* Divider */}
+        <div className="h-px w-10 bg-white/[0.08]" />
+
+        {/* Nav items */}
+        <nav className="flex flex-1 flex-col items-center justify-center gap-3">
           {items.map((item) => {
             const Icon = item.icon
             return (
@@ -32,13 +38,16 @@ export default function Sidebar() {
                 data-focusable="true"
                 aria-label={item.label}
                 className={({ isActive }) => [
-                  'grid h-14 w-14 place-items-center rounded-2xl border transition focus:outline-none focus:ring-4 focus:ring-cyan-300/60 tv:h-20 tv:w-20',
+                  'group relative flex flex-col items-center justify-center gap-1 rounded-2xl border px-2 py-3 text-[10px] font-bold uppercase tracking-widest transition focus:outline-none focus:ring-2 focus:ring-violet-400/60 w-14 xl:w-16 tv:w-20 tv:py-4',
                   isActive
-                    ? 'border-cyan-200/70 bg-cyan-300 text-slate-950 shadow-lg shadow-cyan-400/20'
-                    : 'border-white/10 bg-white/[0.06] text-white/65 hover:bg-white/[0.12] hover:text-white',
+                    ? 'border-violet-400/40 bg-gradient-to-b from-violet-500/20 to-fuchsia-500/10 text-violet-200 shadow-lg shadow-violet-500/10'
+                    : 'border-white/[0.07] bg-white/[0.04] text-white/50 hover:bg-white/[0.09] hover:text-white/80',
                 ].join(' ')}
               >
-                <Icon className="h-6 w-6 tv:h-9 tv:w-9" />
+                <Icon className="h-5 w-5 tv:h-7 tv:w-7" />
+                <span>{item.label}</span>
+                {/* Active dot */}
+                <span className="absolute -right-px top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-violet-400 opacity-0 transition group-[.border-violet-400\/40]:opacity-100" />
               </NavLink>
             )
           })}

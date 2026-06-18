@@ -22,6 +22,7 @@ export const useTvStore = create(
         volume: 0.85,
         streamQuality: 'auto',
         reducedMotion: false,
+        adultContentEnabled: false,
       },
       setCurrentChannel: (channel) => {
         if (!channel?.id) return
@@ -57,7 +58,7 @@ export const useTvStore = create(
       clearRecentlyWatched: () => set({ recentlyWatchedIds: [] }),
     }),
     {
-      name: 'kufa-tv-state',
+      name: 'kufa-tv-v2',            // bump version to flush stale localStorage cache
       partialize: (state) => ({
         favoriteIds: state.favoriteIds,
         recentlyWatchedIds: state.recentlyWatchedIds,
