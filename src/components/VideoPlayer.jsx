@@ -20,7 +20,17 @@ import {
 import FavoriteButton from './FavoriteButton'
 import { useTvStore } from '../store/tvStore'
 
-const normalizeStreamUrl = (url = '') => url.replace(/&amp;/g, '&')
+const normalizeStreamUrl = (url = '') => {
+  let normalized = url.replace(/&amp;/g, '&')
+  // Upgrade insecure HTTP stream URLs to HTTPS to avoid Mixed Content errors
+  // when the app is served over HTTPS (e.g. Vercel). Most IPTV servers support
+  // both protocols; if a server truly doesn't, the stream will still error
+  // gracefully and the user can hit Reconnect.
+  if (normalized.startsWith('http://')) {
+    normalized = 'https://' + normalized.slice(7)
+  }
+  return normalized
+}
 
 const buildQualityOptions = (levels = []) => {
   const byHeight = new Map()
