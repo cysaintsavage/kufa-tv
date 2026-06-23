@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Hls from 'hls.js'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   AlertTriangle,
   Maximize,
@@ -15,10 +15,12 @@ import {
   Volume2,
   VolumeX,
   Wifi,
+  WifiOff,
   ArrowLeft,
 } from 'lucide-react'
 import FavoriteButton from './FavoriteButton'
 import { useTvStore } from '../store/tvStore'
+import useOnlineStatus from '../hooks/useOnlineStatus'
 
 const normalizeStreamUrl = (url = '') => {
   let normalized = url.replace(/&amp;/g, '&')
@@ -93,6 +95,7 @@ const HLS_CONFIG = {
 }
 
 export default function VideoPlayer({ channel, onNext, onPrevious, onBack }) {
+  const isOnline = useOnlineStatus()
   const videoRef = useRef(null)
   const shellRef = useRef(null)
   const hlsRef = useRef(null)
@@ -446,6 +449,30 @@ export default function VideoPlayer({ channel, onNext, onPrevious, onBack }) {
       onFocus={showControls}
       className="relative min-h-screen overflow-hidden bg-black"
     >
+      {/* ── Offline overlay ─────────────────────────────────────── */}
+      <AnimatePresence>
+        {!isOnline && (
+          <motion.div
+            key="offline-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-6 bg-black/90 px-6 text-center"
+          >
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white/5 ring-1 ring-white/10">
+              <WifiOff className="h-12 w-12 text-white/50" />
+            </div>
+            <div>
+              <p className="text-2xl font-black text-white sm:text-3xl">No Internet Connection</p>
+              <p className="mt-2 max-w-sm text-base text-white/50">
+                Connect to the internet to watch live streams. The app will resume automatically.
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <video
         ref={videoRef}
         playsInline

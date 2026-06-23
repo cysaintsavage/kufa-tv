@@ -1,11 +1,64 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      // Include icons in the precache
+      includeAssets: ['favicon.svg', 'icons/icon-192.png', 'icons/icon-512.png'],
+      manifest: {
+        name: 'Kufa TV',
+        short_name: 'Kufa TV',
+        description: 'Watch live IPTV channels — favorites, search, categories, HLS playback.',
+        theme_color: '#07080f',
+        background_color: '#07080f',
+        display: 'standalone',
+        orientation: 'any',
+        start_url: '/',
+        scope: '/',
+        icons: [
+          {
+            src: '/icons/icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any maskable',
+          },
+          {
+            src: '/icons/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable',
+          },
+        ],
+      },
+      workbox: {
+        // Cache app shell: JS/CSS chunks, HTML, fonts, SVGs, local images
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // Never cache stream URLs, m3u8 playlists, or external API calls
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api\//, /\.m3u8$/, /\.ts$/],
+        runtimeCaching: [
+          {
+            // Cache channel logos (remote images) with network-first, fall back to cache
+            urlPattern: /^https?:\/\/.*\.(png|jpg|jpeg|svg|webp|gif)(\?.*)?$/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'channel-logos',
+              expiration: {
+                maxEntries: 200,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+              },
+              networkTimeoutSeconds: 5,
+            },
+          },
+        ],
+      },
+    }),
   ],
   build: {
     // Raise chunk warning threshold (channel data is intentionally large)

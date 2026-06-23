@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar'
 import BottomNav from './components/BottomNav'
 import AppRoutes from './app/routes'
 import useKeyboardNavigation from './hooks/useKeyboardNavigation'
+import InstallPrompt from './components/InstallPrompt'
 
 function Layout() {
   const location = useLocation()
@@ -19,6 +20,7 @@ function Layout() {
         <AppRoutes />
       </main>
       {!isPlayer && <BottomNav />}
+      <InstallPrompt />
     </div>
   )
 }
@@ -30,3 +32,4 @@ export default function App() {
     </BrowserRouter>
   )
 }
+
